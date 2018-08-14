@@ -1,24 +1,63 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import uuidv4 from 'uuid/v4';
+
+const url = 'http://localhost:8060';
 
 class App extends Component {
 
 
   constructor(){
 
-  super();
-  this.state = {
-    theme: '',
-    question: {questionText: ''},
-    alternatives1: [{alternativeText: '', isCorrect: ''}],
-    alternatives2: [{alternativeText: '', isCorrect: ''}],
-    alternatives3: [{alternativeText: '', isCorrect: ''}],
-    alternatives4: [{alternativeText: '', isCorrect: ''}],
-    theme: ''
+    super();
+    this.state = {
+      theme: '',
+      question: {questionText: ''},
+      alternative1: [{alternativeText: '', isCorrect: ''}],
+      alternative2: [{alternativeText: '', isCorrect: ''}],
+      alternative3: [{alternativeText: '', isCorrect: ''}],
+      alternative4: [{alternativeText: '', isCorrect: ''}],
+      questions: [],
+      uniqueThemes: [],
+    }
 
+  
   }
 
+  componentDidMount(){
+    this.getQuestions()
+  }
+
+  sendQuestion() {
+
+    var id = uuidv4();
+
+    fetch(url + '/questions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ questionId: id,
+      name: this.state.question.questionText,
+      theme: this.state.theme,
+      alternative1: this.state.alternative1.alternativeText,
+      alternative2: this.state.alternative2.alternativeText,
+      alternative3: this.state.alternative3.alternativeText,
+      alternative4: this.state.alternative4.alternativeText})
+      }).then((message) => console.log(message.text()))
+      .catch(err => 
+        console.log(err)
+    )
+  }
+
+  getQuestions(){
+
+    fetch(url + '/questions')
+    .then((response) => response.json())
+    .then((questions) => 
+    this.setState({questions: questions}))
+    .then(() =>{ this.setState({ uniqueThemes: [...(new Set(this.state.questions.map(({theme}) => theme)))] })})
+    .catch((err) => console.log(err))
   }
 
   render() {
@@ -26,7 +65,6 @@ class App extends Component {
       <div className="App">
         <div className="full-page">
             <h1 className="page-title">Chesterfield Admin</h1>
-
             <div className="name-form">
               <input className="name-form" list="themes" id="theme-choice" name="theme" placeholder="Emne" 
               onChange={(event) => {
@@ -35,11 +73,13 @@ class App extends Component {
                   theme
                 })}}/>
               <datalist id="themes">
-                  <option value="#"></option>
+                {this.state.uniqueThemes.map((theme) =>(
+                      <option value={theme}></option>
+                ))}
               </datalist>
             </div>
 
-            <div class="name-form">
+            <div className="name-form">
               <input className="name-form" type="text" 
               onChange={(event) => {
               const questionText = event.target.value;
@@ -51,11 +91,11 @@ class App extends Component {
               }}/>
             </div>
 
-            <div class="name-form">
+            <div className="name-form">
               <input className="name-form" type="text"
               onChange={(event) => {
               const alt1 = event.target.value;
-              this.setState({ alternatives1:{ 
+              this.setState({ alternative1:{ 
                 ...this.state.question,
                 alternativeText: alt1,
                 isCorrect: true
@@ -64,11 +104,11 @@ class App extends Component {
               }}/>
             </div>
 
-            <div class="name-form">
+            <div className="name-form">
               <input className="name-form" type="text"
               onChange={(event) => {
               const alt2 = event.target.value;
-              this.setState({ alternatives2:{ 
+              this.setState({ alternative2:{ 
                 ...this.state.question,
                 alternativeText: alt2,
                 isCorrect: false
@@ -77,11 +117,11 @@ class App extends Component {
               }}/>
             </div>
 
-            <div class="name-form">
+            <div className="name-form">
               <input className="name-form" type="text"
               onChange={(event) => {
               const alt3 = event.target.value;
-              this.setState({ alternatives3:{ 
+              this.setState({ alternative3:{ 
                 ...this.state.question,
                 alternativeText: alt3,
                 isCorrect: false
@@ -90,11 +130,11 @@ class App extends Component {
               }}/>
             </div>
 
-            <div class="name-form">
+            <div className="name-form">
               <input className="name-form" type="text"
               onChange={(event) => {
               const alt4 = event.target.value;
-              this.setState({ alternatives4:{ 
+              this.setState({ alternative4:{ 
                 ...this.state.question,
                 alternativeText: alt4,
                 isCorrect: false
@@ -103,10 +143,9 @@ class App extends Component {
               }}/>
             </div>
 
-
-
-            <div class="name-form">
-              <button className="upload-button">Last opp</button>
+            <div className="name-form">
+              <button className="upload-button" onClick={() => {
+                this.sendQuestion()}}>Last opp</button>
             </div>
 
           </div>
