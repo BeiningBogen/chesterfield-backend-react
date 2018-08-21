@@ -1,0 +1,81 @@
+{
+  "name": "Jegerprøven",
+  "subjectId": 123,
+  "themes": [
+    {
+      "name": "Jaktperiode",
+      "themeId": 321,
+      "questions": [
+        {
+          "text": "Hva jakter man på i september?",
+          "questionId": 0,
+          "correctAlternativeId": 0,
+          "alternatives": [
+            {
+              "alternativeId": 0,
+              "text": "Kråke"
+            },
+            {
+              "alternativeId": 1,
+              "text": "Hjort"
+            },
+            {
+              "alternativeId": 2,
+              "text": "Elg"
+            },
+            {
+              "alternativeId": 3,
+              "text": "Rype"
+            }
+          ]
+        },
+        {
+          "text": "Hva skyter man elg med?",
+          "questionId": 1,
+          "correctAlternativeId": 4,
+          "alternatives": [
+            {
+              "alternativeId": 4,
+              "text": "Hagle"
+            },
+            {
+              "alternativeId": 5,
+              "text": "50. Cal"
+            },
+            {
+              "alternativeId": 6,
+              "text": "Magnum"
+            },
+            {
+              "alternativeId": 7,
+              "text": "Sprettert"
+            }
+          ]
+        },
+        {
+          "text": "Hvor kan man jakte",
+          "questionId": 2,
+          "correctAlternativeId": 8,
+          "alternatives": [
+            {
+              "alternativeId": 8,
+              "text": "Skog"
+            },
+            {
+              "alternativeId": 9,
+              "text": "Mark"
+            },
+            {
+              "alternativeId": 10,
+              "text": "Hjemme"
+            },
+            {
+              "alternativeId": 11,
+              "text": "Gammelhjem"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
