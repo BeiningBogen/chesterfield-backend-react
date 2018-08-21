@@ -155,42 +155,30 @@ app.get('/subjects', (req, res) => {
 
 app.get('/questions/:subject&:theme', (req, res) => {
 
-    const subject = req.params.subject
-    const theme = req.params.theme
+    const subjectPar = req.params.subject
+    const themePar = req.params.theme
 
-    var json = {
-        name: "",
-        id: 0,
-        themes: {
-            name: "",
-            id: 321,
-            questions: []
-        }
-    }
 
-    Subject.find({name: subject}, (err, subjectIn) => {
+    
+        Theme.find({name : themePar})
+        .populate({
+            path: 'questions',
+            select: 'name _id alternative1 alternative2 alternative3 alternative4 ' 
+        }).exec(function (err, theme) {
 
-        json.name = subjectIn.name
 
-        Theme.find({subjectId: subjectIn.subjectId}, (err, theme) => {
-            console.log(theme)
-            Question.find({themeId : theme.themeId}, (err, questions) =>{
-
-                console.log(theme)
                 var thing = {
-                    name: subjectIn.name,
-                    id: subjectIn.subjectId,
+                    name: subjectPar,
+                    subjectId: theme[0].subject._id,
                     themes: {
-                        name: theme.name,
-                        id: 321,
-                        questions: questions
+                        name: theme[0].name,
+                        themeId: theme[0]._id,
+                        questions: theme[0].questions
                     }
                 }
-                    res.json(json);
-                });
-        });
 
-    });
+                    res.json(thing);
+        });
 });
 
 app.get('/questionstheme/:subject', (req, res) => {
