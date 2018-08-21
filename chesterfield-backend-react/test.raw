@@ -9,6 +9,7 @@
         {
           "text": "Hva jakter man på i september?",
           "questionId": 0,
+          "correctAlternativeId": 0,
           "alternatives": [
             {
               "alternativeId": 0,
@@ -31,6 +32,7 @@
         {
           "text": "Hva skyter man elg med?",
           "questionId": 1,
+          "correctAlternativeId": 4,
           "alternatives": [
             {
               "alternativeId": 4,
@@ -53,6 +55,7 @@
         {
           "text": "Hvor kan man jakte",
           "questionId": 2,
+          "correctAlternativeId": 8
           "alternatives": [
             {
               "alternativeId": 8,
