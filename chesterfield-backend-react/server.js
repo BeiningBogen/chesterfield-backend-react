@@ -40,72 +40,95 @@ app.post('/questionsMany', (req, res) => {
 
     var newSubject = new Subject({_id: new mongoose.Types.ObjectId(), name: req.body.subject});
 
-    Subject.countDocuments({name: newSubject.name}, function (err, count){ 
-
-        if(count <= 0){
-
-            newSubject.save(function (err) {
-                if (err) return console.log(err);
-            });
-
-        }else{
-            //console.log("finnes")
-        }
-    }); 
-
-   
-
     var newTheme = new Theme({_id: new mongoose.Types.ObjectId(), name: req.body.theme, subject: newSubject._id})
 
     var newQuestion = new Question({questionId: req.body.questionId, name: req.body.name, theme: newTheme._id, alternative1: req.body.alternative1, alternative2: req.body.alternative2, alternative3: req.body.alternative3, alternative4: req.body.alternative4, subject: newSubject._id});
 
+    Subject.countDocuments({name: newSubject.name}, function (err, count){ 
 
-    newTheme.questions.push(newQuestion);
+        if(count === 0){
 
-    Theme.find({name: newTheme.name})
-        .populate({
-            path: 'subject',
-            match: { name: { $gte: newSubject.name }},
-            select: 'name'
-        }).exec(function (err, json) {
-            if (err) console.log(err);
+            console.log("Emne Finnes ikke")
+            
+            newSubject.themes.push(newTheme);
 
-            if(json.length == 0){
+            newSubject.save(function (err) {
+
+                if (err) return console.log(err);
+                newTheme.questions.push(newQuestion);
                 newTheme.save(function (err) {
                     if (err) return console.log(err);
-                });
-            }else{
-
-            }
+                        newQuestion.save(function (err) {
+                            if (err) return console.log(err); 
             
-        });
-
-        Question.find({name: newQuestion.name})
-        .populate({
-            path: 'theme',
-            match: { name: newTheme.name},
-            select: 'name'
-        }).populate({
-            path: 'subject',
-            match: { name: newSubject.name},
-            select: 'name'
-        }).exec(function (err, json) {
-            if (err) console.log(err);
-
-            console.log(json)
-
-            if(json.length == 0){
-
-                newQuestion.save(function (err) {
-                    if (err) return console.log(err);
+                        });
                 });
-
-            }else{
-                console.log("Exists")
-            }
+                
+            });
             
-        });
+          
 
+        }else{
+            Theme.countDocuments({name: newTheme.name}, function (err, count){
+                 
+                if(count === 0){
+
+                    Subject.findOne({name: newSubject.name}, (err, subject) => {
+                        console.log("Emne finnes - ikke tema")
+
+                        subject.themes.push(newTheme)
+                        subject.save(function (err) {
+
+                            if (err) return console.log(err);
+
+                            newQuestion.subject = subject._id
+                            newTheme.subject = subject._id
+
+                            newTheme.questions.push(newQuestion);
+                            newTheme.save(function (err) {
+                                if (err) return console.log(err);
+                                    newQuestion.save(function (err) {
+                                        if (err) return console.log(err); 
+                        
+                                    });
+                            });
+                        });
+    
+                    });
+
+                }else{
+                    Theme.findOne({name: newTheme.name}, (err, theme) => {
+
+                        Question.countDocuments({name: newQuestion.name}, function (err, questionCount){
+                                    
+                            if(questionCount === 0){
+
+                                console.log("Spørsmål finnes ikke")
+
+                                newQuestion.subject = theme.subject
+                                newQuestion.theme = theme._id
+
+                                theme.questions.push(newQuestion)
+                                
+                                theme.save(function (err) {
+                                    if (err) return console.log(err);
+
+                                    newQuestion.save(function (err) {
+                                        if (err) return console.log(err);
+                                    });
+                                });
+
+                            }else{
+                                console.log("Spørsmål finnes")
+                            }
+                        });
+                        
+                    });
+                }
+            });
+        }
+    });
+   
 });
 
 app.get('/questions', (req, res) => {
@@ -203,7 +226,7 @@ app.post('/questions', (req, res) => {
     var newTheme = new Theme({name: req.body.theme, themeId: req.body.themeId, subjectId: req.body.subjectId})
 
     var newSubject = new Subject({name: req.body.subject, subjectId: req.body.subjectId});
-    console.log(newSubject)
+
     Subject.find({name : newSubject.name}, (err, subject) =>{
         if(subject.length == 0){
 
