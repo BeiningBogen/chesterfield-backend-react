@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import './App.css';
 import randomstring from 'randomstring'
 
-//const url = 'http://localhost:8061';
-const url = 'https://chesterfield-cleanserver.herokuapp.com';
+const url = 'http://localhost:8061';
+//const url = 'https://chesterfield-cleanserver.herokuapp.com';
 
 class App extends Component {
 
@@ -14,7 +14,7 @@ class App extends Component {
     this.state = {
       subject: '',
       theme: '',
-      question: {questionText: ''},
+      question: {},
       alternatives: [{alternativeId: 0, name: ''}],
       questions: [],
       uniqueThemes: [],
@@ -32,13 +32,13 @@ class App extends Component {
 
     var id = randomstring.generate({length:24});
 
-    fetch(url + '/questionsMany', {
+    fetch(url + '/questions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ questionId: id,
-      name: this.state.question.questionText,
+      name: this.state.question,
       subject: this.state.subject,
       theme: this.state.theme,
       alternatives: this.state.alternatives})
@@ -49,11 +49,17 @@ class App extends Component {
   }
 
   getQuestions(){
+    var thesubject = this.state.uniqueSubjects.find((subject) => {
+      return subject.name === this.state.subject
+    })
 
-    fetch(url + '/questions')
+    var theTheme = this.state.uniqueThemes.find((theme) => {
+      return theme.name === this.state.theme
+    })
+
+    fetch(url + '/questions/' + thesubject.name + '&' + theTheme.name)
     .then((response) => response.json())
-    .then((questions) => 
-    this.setState({questions: questions.themes.questions}))
+    .then((questions) =>{ this.setState({ questions: questions.questions})})
     .catch((err) => console.log(err))
   }
 
@@ -63,7 +69,7 @@ class App extends Component {
       return subject.name === this.state.subject
     })
 
-    fetch(url + '/questionstheme/' + thesubject)
+    fetch(url + '/themes/' + thesubject)
     .then((response) => response.json())
     .then((theme) =>{ this.setState({ uniqueThemes: theme})})
     .catch((err) => console.log(err))
@@ -78,6 +84,7 @@ class App extends Component {
     .catch((err) => console.log(err))
 
   }
+
 
   updateQuestion() {
     
@@ -107,14 +114,19 @@ class App extends Component {
 
 
   handleSubject(){
-    this.getThemes();
     this.refs.subject.value = "";
     this.refs.theme.value = "";
   }
 
   handleTheme(){
-    this.getThemes();
+    this.getThemes()
     this.refs.theme.value = "";
+  }
+
+  handleQuestion(){
+    this.getQuestions()
+    this.refs.question.value = "";
+
   }
 
   render() {
@@ -160,15 +172,21 @@ class App extends Component {
             </div>
 
             <div className="name-form">
-              <input placeholder="Spørsmål"className="name-form" type="text" 
+              <input ref="question" className="name-form" list="questions" id="question-choice" name="question" placeholder="Spørsmål" 
+              onClick={() => {
+                this.setState({question: ""});
+                this.handleQuestion();
+              }} 
               onChange={(event) => {
-              const questionText = event.target.value;
-                this.setState({ question: { 
-                  ...this.state.question,
-                  questionText: questionText
-                  } 
-                })
-              }}/>
+              const question = event.target.value;
+                this.setState({ question: 
+                  question
+                })}}/>
+              <datalist id="questions">
+              {this.state.questions.map((question) =>(
+                      <option  value={question.name}></option>
+                ))}
+              </datalist>
             </div>
 
             {this.state.alternatives.map((alternative, id) => 
@@ -189,35 +207,6 @@ class App extends Component {
               </div>
 
             
-
-            <ul className="name-form">
-                {this.
-                state.
-                questions.
-                map((question) => 
-                    <li className="name-form" key={question.questionId}>
-                    <div className="name-form">
-                    <div className="name-form">
-                      <input className="name-form" type="text" 
-                      value={question.name}
-                      onChange={this.updateQuestion}
-                      />
-                  </div>
-                  <div className="name-form">
-                      <input className="name-form" type="text" value={question.alternative1}/>
-                  </div>
-                  <div className="name-form">
-                      <input className="name-form"  type="text" value={question.alternative2}/>
-                  </div>
-                  <div className="name-form">
-                      <input className="name-form" type="text" value={question.alternative3}/>
-                  </div>
-                  <div className="name-form">
-                      <input className="name-form" type="text" value={question.alternative4}/>
-                  </div>
-              </div>
-                    </li>)}
-            </ul>
 
              
           </div>
