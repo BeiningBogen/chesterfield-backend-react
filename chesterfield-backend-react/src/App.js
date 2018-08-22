@@ -94,7 +94,7 @@ class App extends Component {
     
     const newAlternative = this.state.alternatives.map((alternative, sid) => {
       if (id !== sid) return alternative;
-      const newId = uniqueId
+      const newId = uuidv4();
       return { ...alternative, alternativeId: newId, name: evt.target.value};
     });
 
