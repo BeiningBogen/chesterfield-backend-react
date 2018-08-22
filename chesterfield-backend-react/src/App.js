@@ -3,7 +3,7 @@ import './App.css';
 import uuidv4 from 'uuid/v4';
 import MovieItem from '../src/movieItem';
 
-const url = 'https://chesterfield-cleanserver.herokuapp.com/';
+const url = 'https://chesterfield-cleanserver.herokuapp.com';
 
 class App extends Component {
 
