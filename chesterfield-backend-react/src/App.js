@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import uuidv4 from 'uuid/v4';
+import randomstring from 'randomstring'
 import MovieItem from '../src/movieItem';
 
 const url = 'https://chesterfield-cleanserver.herokuapp.com';
@@ -94,7 +95,7 @@ class App extends Component {
     
     const newAlternative = this.state.alternatives.map((alternative, sid) => {
       if (id !== sid) return alternative;
-      const newId = uuidv4();
+      const newId = randomstring.generate()
       return { ...alternative, alternativeId: newId, name: evt.target.value};
     });
 
@@ -102,7 +103,7 @@ class App extends Component {
   }
 
   handleAddAlternative(){
-    const id = uuidv4();
+    const id = randomstring.generate()
     this.setState({
       alternatives: this.state.alternatives.concat([{ alternativeId: id, name: '' }])
     });
