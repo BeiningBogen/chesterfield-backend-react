@@ -16,7 +16,7 @@ app.use('/questionsMany', cors());
 
 
 
-const mongoUrl = 'mongodb://chesterfield:thebigpassword123@ds121182.mlab.com:21182/chesterfield'
+const mongoUrl = 'mongodb://chesterfield:thebigpassword123@ds125402.mlab.com:25402/chesterfield'
 
 var conn = mongoose.connection;             
  
@@ -32,7 +32,7 @@ var themeSchema = mongoose.Schema({_id: mongoose.Schema.Types.ObjectId, name: St
 
 var Theme = mongoose.model('Theme', themeSchema);
 
-var questionSchema = mongoose.Schema({questionId: String, name: String, alternative1: String, alternative2: String, alternative3: String, alternative4: String, theme: {type: mongoose.Schema.Types.ObjectId, ref: 'Theme'}, subject: {type: mongoose.Schema.Types.ObjectId, ref: 'Subject'}});
+var questionSchema = mongoose.Schema({questionId: String, correctAlternativeId: String, name: String, alternatives: [], theme: {type: mongoose.Schema.Types.ObjectId, ref: 'Theme'}, subject: {type: mongoose.Schema.Types.ObjectId, ref: 'Subject'}});
 
 var Question = mongoose.model('Question', questionSchema);
 
@@ -42,7 +42,7 @@ app.post('/questionsMany', (req, res) => {
 
     var newTheme = new Theme({_id: new mongoose.Types.ObjectId(), name: req.body.theme, subject: newSubject._id})
 
-    var newQuestion = new Question({questionId: req.body.questionId, name: req.body.name, theme: newTheme._id, alternative1: req.body.alternative1, alternative2: req.body.alternative2, alternative3: req.body.alternative3, alternative4: req.body.alternative4, subject: newSubject._id});
+    var newQuestion = new Question({questionId: req.body.questionId,correctAlternativeId: 1, name: req.body.name, theme: newTheme._id, alternatives: req.body.alternatives, subject: newSubject._id});
 
     Subject.countDocuments({name: newSubject.name}, function (err, count){ 
 
@@ -146,30 +146,41 @@ app.get('/questions', (req, res) => {
 
 
 
-app.get('/subjects', (req, res) => {
+app.get('/subjects/:subject', (req, res) => {
 
-    Subject.find({}, (err, subjects) => {
-        res.json(subjects);
-    });
+    const subjectPar = req.params.subject
+    
+        Subject.find({name : subjectPar})
+        .populate({
+            path: 'themes',
+            select: 'name questions',
+            populate: {path: 'questions'} 
+        }).exec(function (err, subject) {
+
+                var thing = {
+                    name: subjectPar,
+                    subjectId: subject[0]._id,
+                    themes: subject[0].themes
+                }
+
+                    res.json(thing);
+        });
 });
 
-app.get('/questions/:subject&:theme', (req, res) => {
+app.get('/questionsTheme/:subject&:theme', (req, res) => {
 
     const subjectPar = req.params.subject
     const themePar = req.params.theme
-
-
     
         Theme.find({name : themePar})
         .populate({
             path: 'questions',
-            select: 'name _id alternative1 alternative2 alternative3 alternative4 ' 
+            select: 'name questionId alternatives correctAlternativeId' 
         }).exec(function (err, theme) {
-
 
                 var thing = {
                     name: subjectPar,
-                    subjectId: theme[0].subject._id,
+                    subjectId: theme[0].subject,
                     themes: {
                         name: theme[0].name,
                         themeId: theme[0]._id,

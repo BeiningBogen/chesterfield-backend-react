@@ -15,10 +15,7 @@ class App extends Component {
       subject: '',
       theme: '',
       question: {questionText: ''},
-      alternative1: [{alternativeText: '', isCorrect: ''}],
-      alternative2: [{alternativeText: '', isCorrect: ''}],
-      alternative3: [{alternativeText: '', isCorrect: ''}],
-      alternative4: [{alternativeText: '', isCorrect: ''}],
+      alternatives: [{alternativeId: 0, name: ''}],
       questions: [],
       uniqueThemes: [],
       uniqueSubjects: [],
@@ -47,10 +44,7 @@ class App extends Component {
       name: this.state.question.questionText,
       subject: this.state.subject,
       theme: this.state.theme,
-      alternative1: this.state.alternative1.alternativeText,
-      alternative2: this.state.alternative2.alternativeText,
-      alternative3: this.state.alternative3.alternativeText,
-      alternative4: this.state.alternative4.alternativeText})
+      alternatives: this.state.alternatives})
       }).then((message) => console.log(message.text()))
       .catch(err => 
         console.log(err)
@@ -91,6 +85,29 @@ class App extends Component {
   updateQuestion() {
     
   }
+
+  addAlternative(){
+    
+  }
+
+  handleAlternativeChange = (id) => (evt) => {
+    
+    const newAlternative = this.state.alternatives.map((alternative, sid) => {
+      if (id !== sid) return alternative;
+      const newId = uuidv4();
+      return { ...alternative, alternativeId: newId, name: evt.target.value};
+    });
+
+    this.setState({ alternatives: newAlternative });
+  }
+
+  handleAddAlternative(){
+    const id = uuidv4();
+    this.setState({
+      alternatives: this.state.alternatives.concat([{ alternativeId: id, name: '' }])
+    });
+  }
+
 
   handleSubject(){
     this.getThemes();
@@ -147,7 +164,7 @@ class App extends Component {
             </div>
 
             <div className="name-form">
-              <input className="name-form" type="text" 
+              <input placeholder="Spørsmål"className="name-form" type="text" 
               onChange={(event) => {
               const questionText = event.target.value;
                 this.setState({ question: { 
@@ -158,62 +175,24 @@ class App extends Component {
               }}/>
             </div>
 
-            <div className="name-form">
-              <input className="name-form" type="text"
-              onChange={(event) => {
-              const alt1 = event.target.value;
-              this.setState({ alternative1:{ 
-                ...this.state.question,
-                alternativeText: alt1,
-                isCorrect: true
-                } 
-              }) 
-              }}/>
-            </div>
+            {this.state.alternatives.map((alternative, id) => 
+              <div className="name-form">
+                <input className="name-form" type="text" placeholder="Alternativ" value={alternative.name} onChange={this.handleAlternativeChange(id)}/>
+              </div>
+            )}
 
-            <div className="name-form">
-              <input className="name-form" type="text"
-              onChange={(event) => {
-              const alt2 = event.target.value;
-              this.setState({ alternative2:{ 
-                ...this.state.question,
-                alternativeText: alt2,
-                isCorrect: false
-                } 
-              }) 
-              }}/>
-            </div>
+             <div className="name-form">
+                <button className="add-button" onClick={() => {
+                  this.handleAddAlternative()}}>Legg til alternativ</button>
+              </div>
 
-            <div className="name-form">
-              <input className="name-form" type="text"
-              onChange={(event) => {
-              const alt3 = event.target.value;
-              this.setState({ alternative3:{ 
-                ...this.state.question,
-                alternativeText: alt3,
-                isCorrect: false
-                } 
-              }) 
-              }}/>
-            </div>
 
-            <div className="name-form">
-              <input className="name-form" type="text"
-              onChange={(event) => {
-              const alt4 = event.target.value;
-              this.setState({ alternative4:{ 
-                ...this.state.question,
-                alternativeText: alt4,
-                isCorrect: false
-                } 
-              }) 
-              }}/>
-            </div>
+              <div className="name-form">
+                <button className="upload-button" onClick={() => {
+                  this.sendQuestion()}}>Last opp</button>
+              </div>
 
-            <div className="name-form">
-              <button className="upload-button" onClick={() => {
-                this.sendQuestion()}}>Last opp</button>
-            </div>
+            
 
             <ul className="name-form">
                 {this.

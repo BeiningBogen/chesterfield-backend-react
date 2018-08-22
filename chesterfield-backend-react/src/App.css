@@ -177,6 +177,11 @@ input:-moz-placeholder, textarea:-moz-placeholder {
   background-color: orange !important;
 }
 
+.add-button{
+  background-color: lemonchiffon !important;
+  width: 250px !important;
+}
+
 .change-button {
   height: 50px;
   width: 350px;
