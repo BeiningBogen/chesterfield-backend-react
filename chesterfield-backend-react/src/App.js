@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import './App.css';
-import uuidv4 from 'uuid/v4';
 import randomstring from 'randomstring'
-import MovieItem from '../src/movieItem';
 
+//const url = 'http://localhost:8061';
 const url = 'https://chesterfield-cleanserver.herokuapp.com';
 
 class App extends Component {
@@ -26,15 +25,12 @@ class App extends Component {
   }
 
   componentDidMount(){
-    this.getQuestions();
     this.getSubjects();
   }
 
   sendQuestion() {
 
-    var id = uuidv4();
-    var tid = uuidv4();
-    var sid = uuidv4();
+    var id = randomstring.generate({length:24});
 
     fetch(url + '/questionsMany', {
       method: 'POST',
@@ -95,7 +91,7 @@ class App extends Component {
     
     const newAlternative = this.state.alternatives.map((alternative, sid) => {
       if (id !== sid) return alternative;
-      const newId = randomstring.generate()
+      const newId = randomstring.generate({length:24});
       return { ...alternative, alternativeId: newId, name: evt.target.value};
     });
 
@@ -103,7 +99,7 @@ class App extends Component {
   }
 
   handleAddAlternative(){
-    const id = randomstring.generate()
+    const id = randomstring.generate({length:24});
     this.setState({
       alternatives: this.state.alternatives.concat([{ alternativeId: id, name: '' }])
     });
@@ -130,8 +126,7 @@ class App extends Component {
             <div className="name-form">
               <input ref="subject" className="name-form" list="subjects" id="subject-choice" name="subject" placeholder="Emne"
               onClick={() => {
-                
-                //this.handleSubject();
+      
               }}
               onChange={(event) => {
               const subject = event.target.value;
@@ -141,7 +136,7 @@ class App extends Component {
               }}/>
               <datalist id="subjects">
                 {this.state.uniqueSubjects.map((subject) =>(
-                      <option value={subject.name}></option>
+                      <option key={subject._id}value={subject.name}></option>
                 ))}
               </datalist>
             </div>
@@ -159,7 +154,7 @@ class App extends Component {
                 })}}/>
               <datalist id="themes">
                 {this.state.uniqueThemes.map((theme) =>(
-                      <option value={theme.name}></option>
+                      <option  key={theme._id} value={theme.name}></option>
                 ))}
               </datalist>
             </div>
@@ -177,7 +172,7 @@ class App extends Component {
             </div>
 
             {this.state.alternatives.map((alternative, id) => 
-              <div className="name-form">
+              <div className="name-form" key={alternative._id} >
                 <input className="name-form" type="text" placeholder="Alternativ" value={alternative.name} onChange={this.handleAlternativeChange(id)}/>
               </div>
             )}
