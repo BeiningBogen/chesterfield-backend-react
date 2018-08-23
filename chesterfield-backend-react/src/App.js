@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import './App.css';
 import randomstring from 'randomstring'
 
-const url = 'http://localhost:8061';
-//const url = 'https://chesterfield-cleanserver.herokuapp.com';
+//const url = 'http://localhost:8061';
+const url = 'https://chesterfield-cleanserver.herokuapp.com';
 
 class App extends Component {
 
