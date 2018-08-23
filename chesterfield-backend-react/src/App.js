@@ -15,20 +15,21 @@ class App extends Component {
       subject: '',
       theme: '',
       question: {},
+      currentQuestion: '',
       alternatives: [{alternativeId: 0, name: ''}],
       questions: [],
       uniqueThemes: [],
       uniqueSubjects: [],
+      questionAlternatives: []
     }
 
-  
   }
 
   componentDidMount(){
     this.getSubjects();
   }
 
-  sendQuestion() {
+sendQuestion() {
 
     var id = randomstring.generate({length:24});
 
@@ -48,7 +49,7 @@ class App extends Component {
     )
   }
 
-  getQuestions(){
+  getQuestions(theme){
     var thesubject = this.state.uniqueSubjects.find((subject) => {
       return subject.name === this.state.subject
     })
@@ -57,7 +58,7 @@ class App extends Component {
       return theme.name === this.state.theme
     })
 
-    fetch(url + '/questions/' + thesubject.name + '&' + theTheme.name)
+    fetch(url + '/questions/' + this.state.subject + '&' + theme)
     .then((response) => response.json())
     .then((questions) =>{ this.setState({ questions: questions.questions})})
     .catch((err) => console.log(err))
@@ -90,10 +91,6 @@ class App extends Component {
     
   }
 
-  addAlternative(){
-    
-  }
-
   handleAlternativeChange = (id) => (evt) => {
     
     const newAlternative = this.state.alternatives.map((alternative, sid) => {
@@ -123,10 +120,33 @@ class App extends Component {
     this.refs.theme.value = "";
   }
 
-  handleQuestion(){
-    this.getQuestions()
+  handleQuestion(theme){
+    this.getQuestions(theme)
     this.refs.question.value = "";
+  }
 
+  getAlternatives(currentq){
+
+    if(currentq.length != 0){
+      
+      var theQuestion = this.state.questions.find(question => question.name === currentq)
+    
+      if(theQuestion){
+        this.setState({alternatives: theQuestion.alternatives});
+        this.setState({currentQuestion: theQuestion});
+      }
+    }
+
+
+  }
+
+  deleteQuestion(question){
+
+    fetch(url + '/delete', {
+      method: 'delete',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: question})
+    })
   }
 
   render() {
@@ -136,7 +156,7 @@ class App extends Component {
             <h1 className="page-title">Chesterfield Admin</h1>
 
             <div className="name-form">
-              <input ref="subject" className="name-form" list="subjects" id="subject-choice" name="subject" placeholder="Emne"
+              <input autoComplete="off" ref="subject" className="name-form" list="subjects" id="subject-choice" name="subject" placeholder="Emne"
               onClick={() => {
       
               }}
@@ -145,6 +165,7 @@ class App extends Component {
                 this.setState({ subject: 
                   subject
                 });
+                this.handleTheme();
               }}/>
               <datalist id="subjects">
                 {this.state.uniqueSubjects.map((subject) =>(
@@ -154,16 +175,16 @@ class App extends Component {
             </div>
 
             <div className="name-form">
-              <input ref="theme" className="name-form" list="themes" id="theme-choice" name="theme" placeholder="Tema" 
+              <input autoComplete="off" ref="theme" className="name-form" list="themes" id="theme-choice" name="theme" placeholder="Tema" 
               onClick={() => {
-                this.setState({theme: ""});
-                this.handleTheme();
               }} 
               onChange={(event) => {
               const theme = event.target.value;
                 this.setState({ theme: 
                   theme
-                })}}/>
+                });
+                this.handleQuestion(theme);
+               }}/>
               <datalist id="themes">
                 {this.state.uniqueThemes.map((theme) =>(
                       <option  key={theme._id} value={theme.name}></option>
@@ -172,32 +193,36 @@ class App extends Component {
             </div>
 
             <div className="name-form">
-              <input ref="question" className="name-form" list="questions" id="question-choice" name="question" placeholder="Spørsmål" 
+              <input autoComplete="off" ref="question" className="name-form" list="questions" id="question-choice" name="question" placeholder="Spørsmål" 
               onClick={() => {
-                this.setState({question: ""});
-                this.handleQuestion();
+               
               }} 
               onChange={(event) => {
               const question = event.target.value;
-                this.setState({ question: 
-                  question
-                })}}/>
+              this.getAlternatives(question);
+              this.setState({ question: 
+                question
+              });
+              
+              }
+                }/>
               <datalist id="questions">
               {this.state.questions.map((question) =>(
-                      <option  value={question.name}></option>
+                      <option value={question.name}></option>
                 ))}
               </datalist>
             </div>
 
             {this.state.alternatives.map((alternative, id) => 
-              <div className="name-form" key={alternative._id} >
+              <div className="name-form" >
                 <input className="name-form" type="text" placeholder="Alternativ" value={alternative.name} onChange={this.handleAlternativeChange(id)}/>
               </div>
             )}
 
              <div className="name-form">
                 <button className="add-button" onClick={() => {
-                  this.handleAddAlternative()}}>Legg til alternativ</button>
+                  this.handleAddAlternative();
+                  }}>Legg til alternativ</button>
               </div>
 
 
@@ -205,6 +230,12 @@ class App extends Component {
                 <button className="upload-button" onClick={() => {
                   this.sendQuestion()}}>Last opp</button>
               </div>
+
+              <div className="name-form">
+                <button className="delete-button" onClick={() => {
+                  this.deleteQuestion(this.state.currentQuestion._id)}}>Slett</button>
+              </div>
+
 
             
 

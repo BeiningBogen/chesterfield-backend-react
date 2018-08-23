@@ -165,7 +165,7 @@ input:-moz-placeholder, textarea:-moz-placeholder {
   height: 50px;
   width: 350px;
   font-size: 25px;
-  background-color: #d9534f;
+  background-color: #d9534f !important;
   color: white;
   font-size: 20px;
   font-weight: bold;
