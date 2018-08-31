@@ -1,16 +1,21 @@
 import React, { Component } from 'react';
 import Auth from '../Service/Auth.js'
 
+const auth = new Auth();
 
 class Login extends Component {
 
 constructor(){
     super();
-    const auth = new Auth();
     auth.login();
 }
 
+render() {
+    return (
+        <div>Laster......</div>
+    );
 
+}
 }
 
 export default Login;

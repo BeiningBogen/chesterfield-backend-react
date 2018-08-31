@@ -217,7 +217,7 @@ migrate(){
 
   getAlternatives(currentq){
 
-    if(currentq.length != 0){
+    if(currentq.length !== 0){
       
       var theQuestion = this.state.questions.find(question => question.name === currentq)
     
@@ -273,7 +273,7 @@ migrate(){
                   subject
                 });
                 
-                if(subject.length == 0){
+                if(subject.length === 0){
                   this.handleTheme(subject);
 
                 }
@@ -290,7 +290,7 @@ migrate(){
               <input autoComplete="off" ref="theme" className="name-form" list="themes" id="theme-choice" name="theme" placeholder="Tema" 
               onClick={() => {
 
-                if(this.state.subject.length != 0){
+                if(this.state.subject.length !== 0){
                   this.handleTheme(this.state.subject);
                 }
               }} 
@@ -301,7 +301,7 @@ migrate(){
                   theme
                 });
 
-                if(theme.length == 0){
+                if(theme.length === 0){
 
                   this.handleQuestion(theme);
 
@@ -320,7 +320,7 @@ migrate(){
               <input autoComplete="off" ref="question" className="name-form" list="questions" id="question-choice" name="question" placeholder="Spørsmål" 
               onClick={() => {
 
-                if(this.state.theme.length != 0){
+                if(this.state.theme.length !== 0){
                   this.handleQuestion(this.state.theme);
                 }
       
@@ -328,7 +328,7 @@ migrate(){
               onChange={(event) => {
               const question = event.target.value;
 
-              if(question.length == 0){
+              if(question.length === 0){
                 this.getAlternatives(question);
               }
               
@@ -348,7 +348,7 @@ migrate(){
             {this.state.alternatives.map((alternative, id) => 
               <div className="name-form" >
                 <input onClick={() => {
-                  if(this.state.question.length != 0){
+                  if(this.state.question.length !== 0){
                      this.getAlternatives(this.state.question);
                   }}} 
                   className="name-form" type="text" placeholder="Alternativ" value={alternative.name} onChange={this.handleAlternativeChange(id)}/>

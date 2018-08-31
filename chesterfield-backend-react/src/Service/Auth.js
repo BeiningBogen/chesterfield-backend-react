@@ -8,7 +8,8 @@ export default class Auth {
     redirectUri: 'https://chesterfield-form.herokuapp.com/home',
     audience: 'https://chesterfield.eu.auth0.com/userinfo',
     responseType: 'token id_token',
-    scope: 'openid'
+    scope: 'openid',
+    returnTo: 'https://chesterfield-form.herokuapp.com'
   });
 
   login() {
