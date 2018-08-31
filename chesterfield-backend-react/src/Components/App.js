@@ -27,7 +27,8 @@ class App extends Component {
       questionAlternatives: [],
       isUpdatable: false,
       migrate: [],
-      migratedQuestions: []
+      migratedQuestions: [],
+      isAuth: false,
     }
 
     
@@ -35,35 +36,58 @@ class App extends Component {
   }
 
   componentDidMount(){
-    this.getSubjects();
+    auth.auth0.parseHash((err, authRes) => {
+      if (authRes && authRes.accessToken && authRes.idToken) {
+          this.setSession(authRes);
+      }
+    })
+   
+  }
+
+setSession(authResult) {
+
+    let expiresAt = JSON.stringify((authResult.expiresIn * 1000) + new Date().getTime());
+    localStorage.setItem('access_token', authResult.accessToken);
+    localStorage.setItem('id_token', authResult.idToken);
+    localStorage.setItem('expires_at', expiresAt);
+    this.getSubjects();    
+  }
+
+  isAuthenticated() {
+    let expiresAt = JSON.parse(localStorage.getItem('expires_at'));
+    return new Date().getTime() < expiresAt;
   }
 
 sendQuestion() {
+  if (this.isAuthenticated()){
 
-    var id = randomstring.generate({length:24});
+      var id = randomstring.generate({length:24});
 
-    fetch(url + '/questions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ questionId: id,
-      name: this.state.question,
-      subject: this.state.subject,
-      theme: this.state.theme,
-      alternatives: this.state.alternatives})
-      }).then((message) => console.log(message.text()))
-      .then(() =>{ this.setState({alternatives :[]})})
-      .then(() =>{ 
-        this.handleAddAlternative();
-        this.setState({currentQuestion : ""}); 
-        this.refs.question.value = "";
-        id = randomstring.generate({length:24});
-      })
-      .catch(err => 
-        console.log(err)
-    )
-  }
+      fetch(url + '/questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ questionId: id,
+        name: this.state.question,
+        subject: this.state.subject,
+        theme: this.state.theme,
+        alternatives: this.state.alternatives})
+        }).then((message) => console.log(message.text()))
+        .then(() =>{ this.setState({alternatives :[]})})
+        .then(() =>{ 
+          this.handleAddAlternative();
+          this.setState({currentQuestion : ""}); 
+          this.refs.question.value = "";
+          id = randomstring.generate({length:24});
+        })
+        .catch(err => 
+          console.log(err)
+      )
+    }else{
+      console.log("Not Auth")
+    }
+}
 
 getQuesionsFrom(){
 
@@ -161,18 +185,19 @@ migrate(){
 
 
   updateQuestion(question) {
-
-    fetch(url + '/updateQuestion', {
-      method: 'put',
-      body: JSON.stringify({
-        newQuestion: this.state.question,
-        question: question,
-        alternatives: this.state.alternatives 
-      }),
-      headers: {'Content-Type': 'application/json'}
-    }).then((response) => response.text())
-      .then((message) =>{ console.log(message)})
-      .catch((err) => console.log(err))
+    if (this.isAuthenticated()){
+      fetch(url + '/updateQuestion', {
+        method: 'put',
+        body: JSON.stringify({
+          newQuestion: this.state.question,
+          question: question,
+          alternatives: this.state.alternatives 
+        }),
+        headers: {'Content-Type': 'application/json'}
+      }).then((response) => response.text())
+        .then((message) =>{ console.log(message)})
+        .catch((err) => console.log(err))
+    }
   }
 
   handleAlternativeChange = (id) => (evt) => {
@@ -233,25 +258,32 @@ migrate(){
   }
 
   logOut(){
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('id_token');
+    localStorage.removeItem('expires_at');
+    this.setState({isAuth: false})
     auth.logout();
   }
 
   deleteQuestion(question){
+    
+    if (this.isAuthenticated()){
 
-    fetch(url + '/delete', {
-      method: 'delete',
-      body: JSON.stringify({question: question}),
-      headers: {'Content-Type': 'application/json'}
-    }).then((response) => response.text())
-      .then((message) =>{ console.log(message)})
-      .then(() =>{ this.setState({alternatives :[]}) })
-      .then(() =>{ 
-        this.setState({currentQuestion : ""}); 
-        this.refs.question.value = ""; 
-        this.setState({isUpdatable: false});
-        this.handleAddAlternative();
-      })
-      .catch((err) => console.log(err))
+      fetch(url + '/delete', {
+        method: 'delete',
+        body: JSON.stringify({question: question}),
+        headers: {'Content-Type': 'application/json'}
+      }).then((response) => response.text())
+        .then((message) =>{ console.log(message)})
+        .then(() =>{ this.setState({alternatives :[]}) })
+        .then(() =>{ 
+          this.setState({currentQuestion : ""}); 
+          this.refs.question.value = ""; 
+          this.setState({isUpdatable: false});
+          this.handleAddAlternative();
+        })
+        .catch((err) => console.log(err))
+    }
   }
 
   render() {
