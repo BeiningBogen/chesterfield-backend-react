@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
-import './App.css';
+import '../App.css';
 import randomstring from 'randomstring'
+import Auth from '../Service/Auth.js'
 
-//const url = 'http://localhost:8061';
+
+//const url = 'http://localhost:8063';
 const url = 'https://chesterfield-cleanserver.herokuapp.com';
+//const url2 = 'https://knowledgeify.appspot.com/api'
+
+const auth = new Auth()
 
 class App extends Component {
-
 
   constructor(){
 
@@ -20,8 +24,13 @@ class App extends Component {
       questions: [],
       uniqueThemes: [],
       uniqueSubjects: [],
-      questionAlternatives: []
+      questionAlternatives: [],
+      isUpdatable: false,
+      migrate: [],
+      migratedQuestions: []
     }
+
+    
 
   }
 
@@ -44,10 +53,78 @@ sendQuestion() {
       theme: this.state.theme,
       alternatives: this.state.alternatives})
       }).then((message) => console.log(message.text()))
+      .then(() =>{ this.setState({alternatives :[]})})
+      .then(() =>{ 
+        this.handleAddAlternative();
+        this.setState({currentQuestion : ""}); 
+        this.refs.question.value = "";
+        id = randomstring.generate({length:24});
+      })
       .catch(err => 
         console.log(err)
     )
   }
+
+getQuesionsFrom(){
+
+    /*fetch(url2, {
+      mode: 'cors',  
+    })
+    .then((response) => response.json())
+    .then((migrateable) => this.setState({migrate: migrateable}))
+    .then(() => { this.migrate()})
+    .catch((err) => console.log(err))
+
+    
+
+    fetch(url + '/questions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ questionId: randomstring.generate({length:24}),
+      name: "Lol",
+      subject: "Jakt",
+      theme: "Kake",
+      alternatives: this.state.alternatives})
+      }).then((message) => console.log(message.text()))
+      .then(() =>{ })
+      .catch(err => 
+        console.log(err)
+      )*/
+
+}
+
+migrate(){
+
+  this.state.migrate.map((question) => {
+    
+    var questionId = randomstring.generate({length:24});
+    var questionText = question.questionText
+    var alternatives = [{alternativeId: randomstring.generate({length:24}), name: question.correctAnswer},{alternativeId: randomstring.generate({length:24}), name: question.choiceOne},{alternativeId: randomstring.generate({length:24}), name: question.choiceTwo}]
+    var theme = question.subTheme
+    var subject = question.theme
+
+
+    fetch(url + '/questions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ questionId: questionId,
+      name: questionText,
+      subject: subject,
+      theme: theme,
+      alternatives: alternatives})
+      }).then((message) => console.log(message.text()))
+      .catch(err => 
+        console.log(err)
+    ) 
+  })
+
+
+}
+
 
   getQuestions(theme){
     var thesubject = this.state.uniqueSubjects.find((subject) => {
@@ -64,12 +141,8 @@ sendQuestion() {
     .catch((err) => console.log(err))
   }
 
-  getThemes(){
-
-    var thesubject = this.state.uniqueSubjects.find((subject) => {
-      return subject.name === this.state.subject
-    })
-
+  getThemes(thesubject){
+    
     fetch(url + '/themes/' + thesubject)
     .then((response) => response.json())
     .then((theme) =>{ this.setState({ uniqueThemes: theme})})
@@ -87,8 +160,19 @@ sendQuestion() {
   }
 
 
-  updateQuestion() {
-    
+  updateQuestion(question) {
+
+    fetch(url + '/updateQuestion', {
+      method: 'put',
+      body: JSON.stringify({
+        newQuestion: this.state.question,
+        question: question,
+        alternatives: this.state.alternatives 
+      }),
+      headers: {'Content-Type': 'application/json'}
+    }).then((response) => response.text())
+      .then((message) =>{ console.log(message)})
+      .catch((err) => console.log(err))
   }
 
   handleAlternativeChange = (id) => (evt) => {
@@ -111,18 +195,24 @@ sendQuestion() {
 
 
   handleSubject(){
-    this.refs.subject.value = "";
-    this.refs.theme.value = "";
+   
+      this.refs.subject.value = "";
+      this.refs.theme.value = "";
+    
   }
 
-  handleTheme(){
-    this.getThemes()
-    this.refs.theme.value = "";
+  handleTheme(currentSubject){
+
+      this.getThemes(currentSubject)
+      this.refs.theme.value = "";
+  
   }
 
   handleQuestion(theme){
-    this.getQuestions(theme)
-    this.refs.question.value = "";
+
+      this.getQuestions(theme)
+      this.refs.question.value = "";
+    
   }
 
   getAlternatives(currentq){
@@ -134,22 +224,38 @@ sendQuestion() {
       if(theQuestion){
         this.setState({alternatives: theQuestion.alternatives});
         this.setState({currentQuestion: theQuestion});
+        this.setState({isUpdatable: true})
       }
+
     }
 
 
+  }
+
+  logOut(){
+    auth.logout();
   }
 
   deleteQuestion(question){
 
     fetch(url + '/delete', {
       method: 'delete',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question: question})
-    })
+      body: JSON.stringify({question: question}),
+      headers: {'Content-Type': 'application/json'}
+    }).then((response) => response.text())
+      .then((message) =>{ console.log(message)})
+      .then(() =>{ this.setState({alternatives :[]}) })
+      .then(() =>{ 
+        this.setState({currentQuestion : ""}); 
+        this.refs.question.value = ""; 
+        this.setState({isUpdatable: false});
+        this.handleAddAlternative();
+      })
+      .catch((err) => console.log(err))
   }
 
   render() {
+    const isUpdatable = this.state.isUpdatable;
     return (
       <div className="App">
         <div className="full-page">
@@ -161,11 +267,17 @@ sendQuestion() {
       
               }}
               onChange={(event) => {
+
               const subject = event.target.value;
-                this.setState({ subject: 
+              this.setState({ subject: 
                   subject
                 });
-                this.handleTheme();
+                
+                if(subject.length == 0){
+                  this.handleTheme(subject);
+
+                }
+
               }}/>
               <datalist id="subjects">
                 {this.state.uniqueSubjects.map((subject) =>(
@@ -177,13 +289,25 @@ sendQuestion() {
             <div className="name-form">
               <input autoComplete="off" ref="theme" className="name-form" list="themes" id="theme-choice" name="theme" placeholder="Tema" 
               onClick={() => {
+
+                if(this.state.subject.length != 0){
+                  this.handleTheme(this.state.subject);
+                }
               }} 
               onChange={(event) => {
               const theme = event.target.value;
-                this.setState({ theme: 
+
+              this.setState({ theme: 
                   theme
                 });
-                this.handleQuestion(theme);
+
+                if(theme.length == 0){
+
+                  this.handleQuestion(theme);
+
+                };
+
+            
                }}/>
               <datalist id="themes">
                 {this.state.uniqueThemes.map((theme) =>(
@@ -195,11 +319,19 @@ sendQuestion() {
             <div className="name-form">
               <input autoComplete="off" ref="question" className="name-form" list="questions" id="question-choice" name="question" placeholder="Spørsmål" 
               onClick={() => {
-               
+
+                if(this.state.theme.length != 0){
+                  this.handleQuestion(this.state.theme);
+                }
+      
               }} 
               onChange={(event) => {
               const question = event.target.value;
-              this.getAlternatives(question);
+
+              if(question.length == 0){
+                this.getAlternatives(question);
+              }
+              
               this.setState({ question: 
                 question
               });
@@ -215,7 +347,11 @@ sendQuestion() {
 
             {this.state.alternatives.map((alternative, id) => 
               <div className="name-form" >
-                <input className="name-form" type="text" placeholder="Alternativ" value={alternative.name} onChange={this.handleAlternativeChange(id)}/>
+                <input onClick={() => {
+                  if(this.state.question.length != 0){
+                     this.getAlternatives(this.state.question);
+                  }}} 
+                  className="name-form" type="text" placeholder="Alternativ" value={alternative.name} onChange={this.handleAlternativeChange(id)}/>
               </div>
             )}
 
@@ -225,15 +361,29 @@ sendQuestion() {
                   }}>Legg til alternativ</button>
               </div>
 
-
-              <div className="name-form">
-                <button className="upload-button" onClick={() => {
-                  this.sendQuestion()}}>Last opp</button>
-              </div>
+              {!isUpdatable ? (
+                  <div className="name-form">
+                    <button className="upload-button" onClick={() => {
+                      this.sendQuestion()}}>Last opp
+                    </button>
+                </div>
+              ) : (
+                <div className="name-form">
+                  <button className="upload-button" onClick={() => {
+                    this.updateQuestion(this.state.currentQuestion)}}>Endre
+                  </button>
+                </div>
+              )}
+          
 
               <div className="name-form">
                 <button className="delete-button" onClick={() => {
-                  this.deleteQuestion(this.state.currentQuestion._id)}}>Slett</button>
+                  this.deleteQuestion(this.state.currentQuestion)}}>Slett</button>
+              </div>
+
+                <div className="name-form">
+                <button className="delete-button" onClick={() => {
+                  this.logOut()}}>Logg ut</button>
               </div>
 
 
