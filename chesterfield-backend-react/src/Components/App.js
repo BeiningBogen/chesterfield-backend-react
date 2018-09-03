@@ -258,15 +258,16 @@ migrate(){
   }
 
   logOut(){
+
     localStorage.removeItem('access_token');
     localStorage.removeItem('id_token');
     localStorage.removeItem('expires_at');
-    this.setState({isAuth: false})
+    
     auth.logout();
   }
 
   deleteQuestion(question){
-    
+
     if (this.isAuthenticated()){
 
       fetch(url + '/delete', {
